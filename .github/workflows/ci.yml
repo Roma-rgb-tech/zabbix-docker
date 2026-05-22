@@ -1,0 +1,38 @@
+name: Zabbix Infrastructure CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  validate-config:
+    name: Lint and Validate Compose
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+      - name: Lint YAML files
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: docker-compose.yml
+          config_data: |
+            extends: default
+            rules:
+              line-length: disable
+              document-start: disable
+
+
+      - name: Create dummy .env for validation
+        run: |
+          echo "DB_USER=test" > .env
+          echo "DB_PASSWORD=test" >> .env
+          echo "DB_NAME=test" >> .env
+
+
+      - name: Validate docker-compose syntax
+        run: docker compose config --quiet
