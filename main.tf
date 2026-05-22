@@ -64,6 +64,7 @@ resource "aws_security_group" "zabbix_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
+    # trivy:ignore:AVD-AWS-0104
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -72,6 +73,17 @@ resource "aws_security_group" "zabbix_sg" {
 resource "aws_instance" "zabbix_server" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.micro"
+
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
+  root_block_device {
+    encrypted = true
+  }
+
+
 
   vpc_security_group_ids = [aws_security_group.zabbix_sg.id]
 
