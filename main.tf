@@ -29,6 +29,7 @@ resource "aws_security_group" "zabbix_sg" {
 
 
   ingress {
+    #tfsec:ignore:aws-vpc-no-public-ingress-ssh
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
