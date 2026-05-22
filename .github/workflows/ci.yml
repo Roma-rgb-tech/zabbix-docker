@@ -7,14 +7,13 @@ on:
     branches: [ "main" ]
 
 jobs:
-  validate-config:
-    name: Lint and Validate Compose
+  validate-and-test:
+    name: Full CI Pipeline
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
 
       - name: Lint YAML files
         uses: ibiqlik/action-yamllint@v3
@@ -26,13 +25,54 @@ jobs:
               line-length: disable
               document-start: disable
 
-
       - name: Create dummy .env for validation
         run: |
           echo "DB_USER=test" > .env
           echo "DB_PASSWORD=test" >> .env
           echo "DB_NAME=test" >> .env
 
-
       - name: Validate docker-compose syntax
         run: docker compose config --quiet
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          hide-progress: false
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Start Zabbix Infrastructure
+        run: docker compose up -d
+
+      - name: Check container status
+        run: |
+          echo "Waiting 20 seconds for databases and services to initialize..."
+          sleep 20
+          docker ps -a
+          
+          EXITED=$(docker ps -a -q -f status=exited | wc -l)
+          if [ "$EXITED" -gt 0 ]; then
+            echo "❌ Error: $EXITED container(s) exited unexpectedly!"
+            docker compose logs
+            exit 1
+          fi
+          echo "✅ All containers are running successfully."
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+
+      - name: Send Telegram Notification
+        if: always()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            🚀 Zabbix CI Pipeline Finished!
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Status: ${{ job.status }}
+            Actor: ${{ github.actor }}
