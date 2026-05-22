@@ -32,8 +32,7 @@ resource "aws_security_group" "zabbix_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    # trivy:ignore:AVD-AWS-0104
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["178.158.240.22/32"]
   }
 
 
@@ -65,7 +64,7 @@ resource "aws_security_group" "zabbix_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    # trivy:ignore:AVD-AWS-0107
+    # trivy:ignore:AVD-AWS-0104
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
