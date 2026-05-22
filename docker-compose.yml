@@ -38,6 +38,3 @@ services:
       - postgres-server
       - zabbix-server
     restart: unless-stopped
-
-
-    
