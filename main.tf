@@ -32,7 +32,7 @@ resource "aws_security_group" "zabbix_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["178.158.240.22/32"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
 
