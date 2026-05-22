@@ -1,0 +1,4 @@
+.env
+zabbix_db_data/
+zabbix_alertscripts/
+zabbix_externalscripts/
